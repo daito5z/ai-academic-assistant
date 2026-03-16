@@ -1,9 +1,14 @@
 from sentence_transformers import SentenceTransformer  # type: ignore
 import chromadb  # type: ignore
+from app.config.settings import settings
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer(
+    "all-MiniLM-L6-v2",
+    device="cpu",
+    token=settings.hf_token
+)
 
-client = chromadb.Client()
+client = chromadb.PersistentClient(path="../../storage/vector_db")
 collection = client.get_or_create_collection(name="documents")
 
 
@@ -16,4 +21,6 @@ def retrieve_context(query, k=3):
         n_results=k
     )
 
-    return results["documents"][0]
+    documents = results["documents"][0]
+
+    return documents

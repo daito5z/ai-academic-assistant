@@ -1,16 +1,24 @@
 import chromadb  # type: ignore
+from chromadb.config import Settings
+import uuid
 
-client = chromadb.Client()
+client = chromadb.PersistentClient(path="../../storage/vector_db")
 
 collection = client.get_or_create_collection(name="documents")
 
 
-def store_embeddings(chunks, embeddings):
+def store_embeddings(chunks, embeddings, document_name):
 
-    ids = [f"id_{i}" for i in range(len(chunks))]
+    ids = [str(uuid.uuid4()) for _ in chunks]
+
+    metadata = [
+        {"document": document_name}
+        for _ in chunks
+    ]
 
     collection.add(
         documents=chunks,
         embeddings=embeddings,
-        ids=ids
+        ids=ids,
+        metadatas=metadata
     )
