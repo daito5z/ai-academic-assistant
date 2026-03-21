@@ -1,22 +1,16 @@
-import re
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 
-def chunk_text(text, chunk_size=500):
+def chunk_text(text, max_tokens=300):
 
-    sentences = re.split(r'(?<=[.!?]) +', text)
-
+    tokens = tokenizer.encode(text)
     chunks = []
-    current_chunk = ""
 
-    for sentence in sentences:
-
-        if len(current_chunk) + len(sentence) < chunk_size:
-            current_chunk += sentence + " "
-        else:
-            chunks.append(current_chunk.strip())
-            current_chunk = sentence + " "
-
-    if current_chunk:
-        chunks.append(current_chunk.strip())
+    for i in range(0, len(tokens), max_tokens):
+        chunk = tokenizer.decode(tokens[i:i+max_tokens])
+        chunks = [c for c in chunks if c.strip()]
+        chunks.append(chunk)
 
     return chunks

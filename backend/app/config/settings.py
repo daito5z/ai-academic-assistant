@@ -1,8 +1,11 @@
 from pydantic_settings import BaseSettings  # type: ignore
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
-    ollama_url: str
+    groq_api_key: str
     model_name: str
     hf_token: str
 

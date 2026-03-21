@@ -1,24 +1,42 @@
 import chromadb  # type: ignore
 from chromadb.config import Settings
 import uuid
+import os
 
-client = chromadb.PersistentClient(path="../../storage/vector_db")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+DB_PATH = os.path.join(BASE_DIR, "storage", "vector_db")
+
+client = chromadb.PersistentClient(path=DB_PATH)
 
 collection = client.get_or_create_collection(name="documents")
 
 
-def store_embeddings(chunks, embeddings, document_name):
+def document_exists(message_id):
 
-    ids = [str(uuid.uuid4()) for _ in chunks]
+    results = collection.get(
+        where={"message_id": message_id}
+    )
 
-    metadata = [
-        {"document": document_name}
-        for _ in chunks
-    ]
+    return len(results["ids"]) > 0
+
+
+def store_embeddings(chunks, embeddings, document_name, metadata_extra=None):
+
+    metadatas = []
+
+    for _ in chunks:
+        meta = {
+            "document": document_name,
+            "source": metadata_extra.get("source", "unknown")
+        }
+
+        meta.update(metadata_extra or {})
+        metadatas.append(meta)
 
     collection.add(
         documents=chunks,
         embeddings=embeddings,
-        ids=ids,
-        metadatas=metadata
+        ids=[str(uuid.uuid4()) for _ in chunks],
+        metadatas=metadatas
     )

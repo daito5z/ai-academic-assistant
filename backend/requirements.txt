@@ -1,7 +1,6 @@
 fastapi
 uvicorn
 requests
-ollama
 python-dotenv
 pydantic
 pydantic_settings
@@ -10,3 +9,7 @@ torch==2.2.2
 transformers==4.41.2
 sentence-transformers==2.7.0
 chromadb
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+groq
