@@ -27,3 +27,4 @@ venv/
 build/
 dist/
 *.egg-info/
+backend/storage/google/credentials.json
