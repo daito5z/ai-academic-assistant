@@ -6,7 +6,7 @@ __pycache__/
 
 # Environment
 .env
-backend/storage/google/credentials.json
+storage/google/credentials.json
 
 # Virtual environments
 venv/
