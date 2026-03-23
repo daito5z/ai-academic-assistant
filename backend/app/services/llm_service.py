@@ -1,17 +1,81 @@
+from datetime import datetime
 from app.knowledge.retriever import retrieve_context
 from app.config.settings import settings
 from groq import Groq
 from app.knowledge.memory_ingestor import store_interaction
 from app.services.session_manager import SessionManager
+from app.services.calendar_service import CalendarService
 
 
 client = Groq(api_key=settings.groq_api_key)
+
+
+def is_calendar_query(query: str):
+    keywords = [
+        "schedule", "calendar", "meeting",
+        "class", "tomorrow", "today",
+        "event", "deadline"
+    ]
+    return any(word in query.lower() for word in keywords)
+
+
+def format_events(events):
+
+    formatted = []
+
+    for e in events:
+        dt = datetime.fromisoformat(e["start"].replace("Z", ""))
+        formatted.append(f"{e['title']} at {dt.strftime('%I:%M %p on %d %b')}")
+
+    return "\n".join(formatted)
 
 
 class LLMService:
 
     @staticmethod
     def generate_response(prompt: str, session_id: str):
+
+        if is_calendar_query(prompt):
+
+            print("Detected calendar query")
+
+            events = CalendarService.get_events_for_query(prompt)
+
+            if not events:
+                return "You don’t have any upcoming events."
+
+            events_text = format_events(events)
+
+            messages = [
+                {
+                    "role": "system",
+                    "content": """
+            You are a smart academic assistant.
+
+            - Answer clearly and naturally
+            - Summarize events instead of listing blindly
+            - If multiple events, organize them nicely
+            """
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+            Upcoming events:
+
+            {events_text}
+
+            User question:
+            {prompt}
+            """
+                }
+            ]
+
+            response = client.chat.completions.create(
+                model=settings.model_name,
+                messages=messages
+            )
+
+            return response.choices[0].message.content
 
         print(f"Generating response for prompt: {prompt}")
 
